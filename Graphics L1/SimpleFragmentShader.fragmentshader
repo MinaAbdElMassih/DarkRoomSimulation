@@ -1,0 +1,123 @@
+#version 330 core
+
+// Input data from vertex shader.
+in vec3 fragmentColor;
+in vec2 TexCoord;
+in vec3 position_worldspace;
+in vec3 normal_worldspace;
+// Ouput data
+out vec3 color;
+uniform vec3 LightPosition_worldspace;
+uniform vec3 EyePosition_worldspace;
+uniform vec3 ambientLight;
+
+//texture sampler
+uniform sampler2D myTextureSampler;
+uniform int RenderingMode;
+
+/////////////
+uniform vec3 lookdir;
+uniform float c2;
+uniform vec3 al;
+uniform vec3 dl;
+uniform vec3 sl;
+uniform vec3 lightpos;
+uniform vec3 camerapos;
+///////////////////
+
+void main()
+{
+
+/*
+vec3 textureColor = texture( myTextureSampler,TexCoord ).rgb;
+if(choice == 1.0f)
+	{
+		//vec3 I=A+D+S;
+		vec3 A= al*textureColor ;
+		
+		vec3 lightvector=normalize(camerapos-position_worldspace);
+
+		float dotproduct= clamp(dot(normal_worldspace,lightvector),0,1);
+
+		vec3 D= dl* textureColor*dotproduct;
+		
+		vec3 R=reflect(-lightvector,normal_worldspace);
+
+		vec3 V= normalize(camerapos-position_worldspace);
+
+		dotproduct=pow(clamp(dot(R,V),0,1),500);
+
+		vec3 S=sl*dotproduct;
+		
+		float dis=distance(position_worldspace,camerapos);
+		//float rad=0.5*dis;
+		float rad=10;
+		float att=clamp(1-pow(dis/rad,2),0,1); 
+		float f =10;
+		float c=(5 * 3.14)/180.0;
+		float s=clamp(dot(-lightvector,lookdir),0,1);
+		float spot=0;//=(dot(-lightvector,lookdir))*f;
+		if(s>cos(c))
+		{
+			spot=s;
+		}
+		//float spot=(dot(-lightvector,lookdir))*f;
+		//vec3 I=A+(spot*att*(D));
+		vec3 I=A+(spot*(D));
+		//vec3 I=A+D+S;
+		// we set the color of each fragment to red.
+		//color = vec3(1,0,0);
+		//color = texture( myTextureSampler,TexCoord).rgb;
+		color=I;
+	}
+	else
+	{
+		vec3 A= al* textureColor;
+
+		vec3 lightvector=normalize(lightpos-position_worldspace);
+
+		float dotproduct= clamp(dot(normal_worldspace,lightvector),0,1);
+
+		vec3 D= dl* textureColor*dotproduct;
+		vec3 R=reflect(-lightvector,normal_worldspace);
+
+		vec3 V= normalize(camerapos-position_worldspace);
+
+		dotproduct=pow(clamp(dot(R,V),0,1),500);
+		vec3 S=sl*dotproduct;
+		vec3 I=A+D+S;
+		//color = texture( myTextureSampler,TexCoord).rgb;
+		color=I;
+	}*/
+
+
+
+
+
+
+
+// Diffuse light calculations.
+	vec3 lightVector = normalize(LightPosition_worldspace - position_worldspace);
+	float brightness = dot(lightVector,normal_worldspace);
+	vec3 diffuseLight = vec3(brightness,brightness,brightness);
+	diffuseLight = clamp(diffuseLight,0,1);
+
+	//Specular light calculations.
+	vec3 reflectedLightVector = reflect(-lightVector,normal_worldspace);
+	vec3 eyeDirectionVector = normalize(EyePosition_worldspace - position_worldspace);
+	float specularity = dot(reflectedLightVector,eyeDirectionVector);
+	float specularExponent = 50;
+	specularity = pow(specularity,specularExponent);
+	vec3 specularLight = vec3(specularity,specularity,specularity);
+	specularLight = clamp(specularLight,0,1);
+	
+	//1) calculate fragment color from sent color only.
+	if(RenderingMode == 0)
+		color = fragmentColor+ambientLight + diffuseLight + specularLight;
+	//2) calculate fragment color from sample extracted by the sampler.
+	if(RenderingMode == 1)
+		color = texture( myTextureSampler, TexCoord ).rgb+ambientLight + diffuseLight + specularLight;
+	//3) calculate fragment color by combining the fragment color and the texture sample.
+	if(RenderingMode == 2)
+		color = texture(myTextureSampler, TexCoord).rgb + fragmentColor+ambientLight + diffuseLight + specularLight;
+}
